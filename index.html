@@ -29,7 +29,7 @@ const DB_NAME="FitTrackDB",DB_VERSION=1;
 let db=null,currentId=null;
 const machines=["Chest Press","Pec Deck","Shoulder Press","Lat Pulldown","Seated Row","Leg Press","Leg Extension","Leg Curl","Abductor","Adductor","Calf Raise","Biceps Curl","Triceps Extension","Cable Row","Smith Machine"];
 const $=id=>document.getElementById(id);
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[c]));
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,9);
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("workouts"))d.createObjectStore("workouts",{keyPath:"id"});if(!d.objectStoreNames.contains("sessions"))d.createObjectStore("sessions",{keyPath:"id"});};r.onsuccess=()=>{db=r.result;resolve()};r.onerror=()=>reject(r.error)})}
 function all(store){return new Promise((resolve,reject)=>{const r=db.transaction(store,"readonly").objectStore(store).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
@@ -57,5 +57,5 @@ async function renderSettings(){activeNav("nSettings");$("heading").textContent=
 async function exportData(){const payload={version:1,exportedAt:new Date().toISOString(),workouts:await all("workouts"),sessions:await all("sessions")};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="fittrack-sauvegarde.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function importData(e){const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!Array.isArray(o.workouts)||!Array.isArray(o.sessions))throw Error();await clearStore("workouts");await clearStore("sessions");for(const w of o.workouts)await put("workouts",w);for(const s of o.sessions)await put("sessions",s);alert("Sauvegarde restaurée.");renderHome()}catch(x){alert("Fichier de sauvegarde invalide.")}e.target.value=""}
 $("nHome").onclick=renderHome;$("nProgress").onclick=renderProgress;$("nSettings").onclick=renderSettings;init();
-navigator.serviceWorker?.register('./sw.js').catch(()=>{});
+navigator.serviceWorker?.register("./sw.js").catch(()=>{});
 </script></body></html>
